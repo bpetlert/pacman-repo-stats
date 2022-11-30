@@ -28,6 +28,12 @@ struct Summary {
     #[serde(rename = "RepoStats")]
     repo_stats: Vec<RepoStats>,
 
+    #[serde(rename = "RepoTotal")]
+    repo_total: u64,
+
+    #[serde(rename = "RepoInstalledTotal")]
+    repo_installed_total: u64,
+
     #[serde(rename = "LocalInstalledTotal")]
     local_installed_total: u64,
 
@@ -49,9 +55,13 @@ struct RepoStats {
     #[serde(rename = "Installed")]
     installed_pkgs: u64,
 
-    #[tabled(rename = "Percentage")]
-    #[serde(rename = "Percentage")]
+    #[tabled(rename = "% Installed")]
+    #[serde(rename = "InstalledPercentage")]
     installed_pkgs_percent: PercentageValue,
+
+    #[tabled(rename = "% Overall")]
+    #[serde(rename = "OverallPercentage")]
+    overall_percent: PercentageValue,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -61,6 +71,8 @@ impl Summary {
     pub fn new() -> Self {
         Self {
             repo_stats: Vec::new(),
+            repo_total: 0,
+            repo_installed_total: 0,
             local_installed_total: 0,
             pkgs_not_in_repo: Vec::new(),
         }
@@ -126,18 +138,22 @@ impl Summary {
 
     /// Calculate total
     pub fn finalize(&mut self) -> Result<()> {
-        let repo_total: u64 = self.repo_stats.iter().map(|stats| stats.total_pkgs).sum();
+        self.repo_total = self.repo_stats.iter().map(|stats| stats.total_pkgs).sum();
 
-        let repo_installed_total: u64 = self
+        self.repo_installed_total = self
             .repo_stats
             .iter()
             .map(|stats| stats.installed_pkgs)
             .sum::<u64>();
 
-        self.repo_stats
-            .push(RepoStats::new("", repo_total, repo_installed_total));
+        self.repo_stats.push(RepoStats::new(
+            "",
+            self.repo_total,
+            self.repo_installed_total,
+        ));
 
-        self.percentage();
+        self.installed_percentage();
+        self.overall_percentage();
 
         Ok(())
     }
@@ -149,9 +165,10 @@ impl Summary {
             .with(Modify::new(ByColumnName::new("Name")).with(Alignment::left()))
             .with(Modify::new(ByColumnName::new("Total")).with(Alignment::right()))
             .with(Modify::new(ByColumnName::new("Installed")).with(Alignment::right()))
-            .with(Modify::new(ByColumnName::new("Percentage")).with(Alignment::right()))
+            .with(Modify::new(ByColumnName::new("% Installed")).with(Alignment::right()))
+            .with(Modify::new(ByColumnName::new("% Overall")).with(Alignment::right()))
             .with(
-                Modify::new(Rows::last().intersect(Columns::new(1..=3)))
+                Modify::new(Rows::last().intersect(Columns::new(1..=4)))
                     .with(Format::new(|s| format!("({})", s))),
             );
 
@@ -166,6 +183,7 @@ impl RepoStats {
             total_pkgs: total,
             installed_pkgs: installed,
             installed_pkgs_percent: PercentageValue(None),
+            overall_percent: PercentageValue(None),
         }
     }
 
@@ -214,11 +232,12 @@ impl std::fmt::Display for Summary {
 }
 
 trait Percentage {
-    fn percentage(&mut self);
+    fn installed_percentage(&mut self);
+    fn overall_percentage(&mut self);
 }
 
 impl Percentage for RepoStats {
-    fn percentage(&mut self) {
+    fn installed_percentage(&mut self) {
         if self.total_pkgs == 0 {
             self.installed_pkgs_percent = PercentageValue(None);
             return;
@@ -228,11 +247,31 @@ impl Percentage for RepoStats {
             (self.installed_pkgs as f64) * 100_f64 / (self.total_pkgs as f64),
         ));
     }
+
+    fn overall_percentage(&mut self) {
+        unreachable!();
+    }
 }
 
 impl Percentage for Summary {
-    fn percentage(&mut self) {
-        self.repo_stats.iter_mut().for_each(|r| r.percentage());
+    fn installed_percentage(&mut self) {
+        self.repo_stats
+            .iter_mut()
+            .for_each(|repo| repo.installed_percentage());
+    }
+
+    fn overall_percentage(&mut self) {
+        if self.repo_total == 0 {
+            self.repo_stats
+                .iter_mut()
+                .for_each(|repo| repo.overall_percent = PercentageValue(None));
+            return;
+        }
+
+        self.repo_stats.iter_mut().for_each(|repo| {
+            let overall = (repo.installed_pkgs as f64) * 100_f64 / (self.repo_total as f64);
+            repo.overall_percent = PercentageValue(Some(overall));
+        });
     }
 }
 
@@ -274,14 +313,14 @@ mod tests {
         assert_eq!(
             table,
             concat!(
-                "=========== ========= =========== ============\n",
-                " Name          Total   Installed   Percentage \n",
-                "=========== ========= =========== ============\n",
-                " core           1234         234        18.96 \n",
-                " community      4567         456         9.98 \n",
-                " extra          8999         555         6.17 \n",
-                "             (14800)      (1245)       (8.41) \n",
-                "=========== ========= =========== ============",
+                "=========== ========= =========== ============= ===========\n",
+                " Name          Total   Installed   % Installed   % Overall \n",
+                "=========== ========= =========== ============= ===========\n",
+                " core           1234         234         18.96        1.58 \n",
+                " community      4567         456          9.98        3.08 \n",
+                " extra          8999         555          6.17        3.75 \n",
+                "             (14800)      (1245)        (8.41)      (8.41) \n",
+                "=========== ========= =========== ============= ===========",
             ),
             "\n{table}"
         );
