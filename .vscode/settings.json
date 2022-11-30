@@ -3,6 +3,7 @@
         "adoc",
         "alpm",
         "localdb",
+        "pkgver",
         "serde",
         "syncdb",
         "syncdbs"
