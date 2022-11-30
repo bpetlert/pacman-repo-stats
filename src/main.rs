@@ -7,6 +7,7 @@ use alpm::{Alpm, SigLevel};
 use anyhow::{Context, Result};
 use clap::Parser;
 use pacmanconf::Config;
+use serde::Serialize;
 use tabled::{
     format::Format,
     locator::ByColumnName,
@@ -22,29 +23,38 @@ pub struct Arguments {
     json: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 struct Summary {
+    #[serde(rename = "RepoStats")]
     repo_stats: Vec<RepoStats>,
+
+    #[serde(rename = "LocalInstalledTotal")]
     local_installed_total: u64,
+
+    #[serde(rename = "PackagesNotInReo")]
     pkgs_not_in_repo: Vec<String>,
 }
 
-#[derive(Debug, Clone, Tabled)]
+#[derive(Debug, Clone, Tabled, Serialize)]
 struct RepoStats {
     #[tabled(rename = "Name")]
+    #[serde(rename = "Name")]
     name: String,
 
     #[tabled(rename = "Total")]
+    #[serde(rename = "Total")]
     total_pkgs: u64,
 
     #[tabled(rename = "Installed")]
+    #[serde(rename = "Installed")]
     installed_pkgs: u64,
 
     #[tabled(rename = "Percentage")]
+    #[serde(rename = "Percentage")]
     installed_pkgs_percent: PercentageValue,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 struct PercentageValue(Option<f64>);
 
 impl Summary {
@@ -227,13 +237,20 @@ impl Percentage for Summary {
 }
 
 fn main() -> Result<()> {
-    let _arguments = Arguments::parse();
+    let arguments = Arguments::parse();
 
     let mut summary = Summary::new();
     summary.build()?;
     summary.finalize()?;
 
     let mut stdout = io::BufWriter::new(io::stdout().lock());
+
+    if arguments.json {
+        let json = serde_json::to_string(&summary)?;
+        write!(stdout, "{json}")?;
+        return Ok(());
+    }
+
     writeln!(stdout, "{summary}")?;
 
     Ok(())
