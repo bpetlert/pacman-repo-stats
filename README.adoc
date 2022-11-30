@@ -1,0 +1,128 @@
+= pacman-repo-stats
+:toc:
+:toc-placement!:
+ifndef::env-github[:icons: font]
+ifdef::env-github[]
+:status:
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+*pacman-repo-stats* is a tool to show usage statistics of repositories in pacman.conf.
+
+toc::[]
+
+== Installation
+
+=== Cargo
+
+*pacman-repo-stats* can be used without installation by run:
+
+.For normal output
+[source,console]
+$ cargo run
+
+.For JSON output
+[source,console]
+$ cargo run -- --json
+
+To install in `$HOME/.cargo/bin`, run:
+[source,console]
+$ cargo install --path .
+
+=== Arch Linux
+To build and install arch package from GIT source:
+
+[source,console]
+$ git clone https://github.com/bpetlert/pacman-repo-stats.git
+$ cd pacman-repo-stats
+$ makepkg -p PKGBUILD.local
+$ pacman -U pacman-repo-stats-xxxx-1-x86_64.pkg.tar
+
+== Usage
+
+.Normal output
+[source,console]
+----
+$ pacman-repo-stats
+============= ========= =========== ============
+ Name            Total   Installed   Percentage
+============= ========= =========== ============
+ core              261         213        81.61
+ extra            3077        1143        37.15
+ community        9795         713         7.28
+ multilib          276          95        34.42
+ archlinuxcn      2446          15         0.61
+ arch4edu         1242           9         0.72
+ xxxxxxxx           45          41        91.11
+               (17142)      (2229)      (13.00)
+============= ========= =========== ============
+Local Installed Packages: 2230
+Installed Packages Not Found In Repo: 1
+    qt5-webkit
+----
+
+.Export as JSON and pretty print using https://stedolan.github.io/jq/[jq]
+[source,console]
+----
+$ pacman-repo-stats --json | jq
+{
+  "RepoStats": [
+    {
+      "Name": "core",
+      "Total": 261,
+      "Installed": 213,
+      "Percentage": 81.60919540229885
+    },
+    {
+      "Name": "extra",
+      "Total": 3077,
+      "Installed": 1143,
+      "Percentage": 37.14657133571661
+    },
+    {
+      "Name": "community",
+      "Total": 9795,
+      "Installed": 713,
+      "Percentage": 7.279224093925472
+    },
+    {
+      "Name": "multilib",
+      "Total": 276,
+      "Installed": 95,
+      "Percentage": 34.42028985507246
+    },
+    {
+      "Name": "archlinuxcn",
+      "Total": 2446,
+      "Installed": 15,
+      "Percentage": 0.6132461161079313
+    },
+    {
+      "Name": "arch4edu",
+      "Total": 1242,
+      "Installed": 9,
+      "Percentage": 0.7246376811594203
+    },
+    {
+      "Name": "xxxxxxxx",
+      "Total": 45,
+      "Installed": 41,
+      "Percentage": 91.11111111111111
+    },
+    {
+      "Name": "",
+      "Total": 17142,
+      "Installed": 2229,
+      "Percentage": 13.003150157507875
+    }
+  ],
+  "LocalInstalledTotal": 2230,
+  "PackagesNotInReo": [
+    "qt5-webkit"
+  ]
+}
+----
