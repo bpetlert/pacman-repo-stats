@@ -48,19 +48,19 @@ $ pacman -U pacman-repo-stats-xxxx-1-x86_64.pkg.tar
 [source,console]
 ----
 $ pacman-repo-stats
-============= ========= =========== ============
- Name            Total   Installed   Percentage
-============= ========= =========== ============
- core              261         213        81.61
- extra            3077        1143        37.15
- community        9795         713         7.28
- multilib          276          95        34.42
- archlinuxcn      2446          15         0.61
- arch4edu         1242           9         0.72
- xxxxxxxx           45          41        91.11
-               (17142)      (2229)      (13.00)
-============= ========= =========== ============
-Local Installed Packages: 2230
+============= ========= =========== ============= ===========
+ Name            Total   Installed   % Installed   % Overall
+============= ========= =========== ============= ===========
+ core              261         213         81.61        1.24
+ extra            3077        1143         37.15        6.67
+ community        9795         713          7.28        4.16
+ multilib          276          95         34.42        0.55
+ archlinuxcn      2446          15          0.61        0.09
+ arch4edu         1242           9          0.72        0.05
+ bpl-repo           46          42         91.30        0.24
+               (17143)      (2230)       (13.01)     (13.01)
+============= ========= =========== ============= ===========
+Local Installed Packages: 2231
 Installed Packages Not Found In Repo: 1
     qt5-webkit
 ----
@@ -75,52 +75,62 @@ $ pacman-repo-stats --json | jq
       "Name": "core",
       "Total": 261,
       "Installed": 213,
-      "Percentage": 81.60919540229885
+      "InstalledPercentage": 81.60919540229885,
+      "OverallPercentage": 1.2424896459196173
     },
     {
       "Name": "extra",
       "Total": 3077,
       "Installed": 1143,
-      "Percentage": 37.14657133571661
+      "InstalledPercentage": 37.14657133571661,
+      "OverallPercentage": 6.667444437963017
     },
     {
       "Name": "community",
       "Total": 9795,
       "Installed": 713,
-      "Percentage": 7.279224093925472
+      "InstalledPercentage": 7.279224093925472,
+      "OverallPercentage": 4.159132007233273
     },
     {
       "Name": "multilib",
       "Total": 276,
       "Installed": 95,
-      "Percentage": 34.42028985507246
+      "InstalledPercentage": 34.42028985507246,
+      "OverallPercentage": 0.5541620486495946
     },
     {
       "Name": "archlinuxcn",
       "Total": 2446,
       "Installed": 15,
-      "Percentage": 0.6132461161079313
+      "InstalledPercentage": 0.6132461161079313,
+      "OverallPercentage": 0.08749927083940967
     },
     {
       "Name": "arch4edu",
       "Total": 1242,
       "Installed": 9,
-      "Percentage": 0.7246376811594203
+      "InstalledPercentage": 0.7246376811594203,
+      "OverallPercentage": 0.052499562503645805
     },
     {
-      "Name": "xxxxxxxx",
-      "Total": 45,
-      "Installed": 41,
-      "Percentage": 91.11111111111111
+      "Name": "bpl-repo",
+      "Total": 46,
+      "Installed": 42,
+      "InstalledPercentage": 91.30434782608695,
+      "OverallPercentage": 0.24499795835034707
     },
     {
       "Name": "",
-      "Total": 17142,
-      "Installed": 2229,
-      "Percentage": 13.003150157507875
+      "Total": 17143,
+      "Installed": 2230,
+      "InstalledPercentage": 13.008224931458905,
+      "OverallPercentage": 13.008224931458905
     }
   ],
-  "LocalInstalledTotal": 2230,
+  "RepoTotal": 17143,
+  "RepoInstalledTotal": 2230,
+  "LocalInstalledTotal": 2231,
   "PackagesNotInReo": [
     "qt5-webkit"
   ]
