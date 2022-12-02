@@ -137,3 +137,7 @@ $ pacman-repo-stats --json | jq
   ]
 }
 ----
+
+== License
+
+*link:./COPYING[GNU General Public License v3.0 or later]*
