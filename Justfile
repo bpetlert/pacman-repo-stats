@@ -4,8 +4,12 @@
 run +ARGS='':
   cargo run -- {{ARGS}}
 
+# Run with debug log
+run-debug +ARGS='':
+  RUST_BACKTRACE=1 RUST_LOG=pacman_repo_stats=debug cargo run -- {{ARGS}}
+
 test +CASES='':
-  RUST_BACKTRACE=1 cargo test -- {{CASES}}
+  RUST_BACKTRACE=1 RUST_LOG=pacman_repo_stats=debug cargo test -- {{CASES}}
 
 # Increase semver
 bump-version VERSION:
