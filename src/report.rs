@@ -5,10 +5,12 @@ use anyhow::{Context, Result};
 use pacmanconf::Config;
 use serde::Serialize;
 use tabled::{
-    format::Format,
-    locator::ByColumnName,
-    object::{Columns, Object, Rows},
-    Alignment, Modify, Style, Table, Tabled,
+    settings::{
+        locator::ByColumnName,
+        object::{Columns, Object, Rows},
+        Alignment, Format, Modify, Style,
+    },
+    Table, Tabled,
 };
 
 #[derive(Debug, Serialize)]
@@ -157,7 +159,7 @@ impl Summary {
             .with(Modify::new(ByColumnName::new("% Overall")).with(Alignment::right()))
             .with(
                 Modify::new(Rows::last().intersect(Columns::new(1..=4)))
-                    .with(Format::new(|s| format!("({})", s))),
+                    .with(Format::content(|s| format!("({})", s))),
             );
 
         Ok(table.to_string())

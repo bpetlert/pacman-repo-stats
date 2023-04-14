@@ -16,12 +16,12 @@ publish = false
 
 [dependencies]
 alpm = "2.2.1"
-anyhow = "1.0.68"
-clap = { version = "4.0.32", features = ["derive"] }
+anyhow = "1.0.70"
+clap = { version = "4.2.2", features = ["derive"] }
 pacmanconf = "2.0.0"
-serde = { version = "1.0.152", features = ["derive"] }
-serde_json = "1.0.91"
-tabled = "0.10.0"
+serde = { version = "1.0.160", features = ["derive"] }
+serde_json = "1.0.96"
+tabled = "0.11.1"
 tracing = { version = "0.1.37", features = [
     "max_level_debug",
     "release_max_level_debug",
