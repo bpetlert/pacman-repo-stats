@@ -15,18 +15,18 @@ edition = "2021"
 publish = false
 
 [dependencies]
-alpm = "2.2.1"
-anyhow = "1.0.70"
-clap = { version = "4.2.2", features = ["derive"] }
+alpm = "2.2.2"
+anyhow = "1.0.75"
+clap = { version = "4.4.3", features = ["derive"] }
 pacmanconf = "2.0.0"
-serde = { version = "1.0.160", features = ["derive"] }
-serde_json = "1.0.96"
-tabled = "0.11.1"
+serde = { version = "1.0.188", features = ["derive"] }
+serde_json = "1.0.107"
+tabled = "0.14.0"
 tracing = { version = "0.1.37", features = [
     "max_level_debug",
     "release_max_level_debug",
 ] }
-tracing-subscriber = { version = "0.3.16", default-features = false, features = [
+tracing-subscriber = { version = "0.3.17", default-features = false, features = [
     "ansi",
     "env-filter",
     "fmt",
