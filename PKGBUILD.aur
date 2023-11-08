@@ -6,7 +6,7 @@ pkgdesc="Show usage statistics of repositories in pacman.conf"
 arch=('x86_64')
 url="https://github.com/bpetlert/pacman-repo-stats"
 license=('GPL-3.0-or-later')
-depends=(pacman)
+depends=(libalpm.so)
 makedepends=(cargo)
 
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/bpetlert/${pkgname}/archive/${pkgver}.tar.gz")
