@@ -40,5 +40,4 @@ package() {
   install -Dm755 "target/release/pacman-repo-stats" "$pkgdir/usr/bin/pacman-repo-stats"
 
   install -Dm644 "$startdir/README.adoc" "$pkgdir/usr/share/doc/${pkgname}/README.adoc"
-  install -Dm644 "$startdir/COPYING" "$pkgdir/usr/share/licenses/${pkgname}/COPYING"
 }
