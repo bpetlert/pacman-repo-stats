@@ -6,7 +6,7 @@ use pacmanconf::Config;
 use serde::Serialize;
 use tabled::{
     settings::{
-        locator::ByColumnName,
+        location::ByColumnName,
         object::{Columns, Object, Rows},
         Alignment, Format, Modify, Style,
     },
