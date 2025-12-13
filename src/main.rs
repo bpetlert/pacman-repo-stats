@@ -2,16 +2,29 @@ mod args;
 mod report;
 
 use std::{
-    io::{self, Write},
+    io::{
+        self,
+        Write,
+    },
     process::ExitCode,
 };
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{
+    Context,
+    Result,
+    anyhow,
+};
 use clap::Parser;
-use tracing::{debug, error};
+use tracing::{
+    debug,
+    error,
+};
 use tracing_subscriber::EnvFilter;
 
-use crate::{args::Arguments, report::Summary};
+use crate::{
+    args::Arguments,
+    report::Summary,
+};
 
 fn run() -> Result<()> {
     let filter =

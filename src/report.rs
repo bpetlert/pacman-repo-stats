@@ -1,16 +1,30 @@
 use std::collections::HashMap;
 
-use alpm::{Alpm, SigLevel};
-use anyhow::{Context, Result};
+use alpm::{
+    Alpm,
+    SigLevel,
+};
+use anyhow::{
+    Context,
+    Result,
+};
 use pacmanconf::Config;
 use serde::Serialize;
 use tabled::{
+    Table,
+    Tabled,
     settings::{
+        Alignment,
+        Format,
+        Modify,
+        Style,
         location::ByColumnName,
-        object::{Columns, Object, Rows},
-        Alignment, Format, Modify, Style,
+        object::{
+            Columns,
+            Object,
+            Rows,
+        },
     },
-    Table, Tabled,
 };
 
 #[derive(Debug, Serialize)]
