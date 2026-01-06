@@ -1,7 +1,7 @@
 [package]
 name = "pacman-repo-stats"
 version = "0.5.2"
-edition = "2021"
+edition = "2024"
 description = "Show usage statistics of repositories in pacman.conf"
 documentation = "https://github.com/bpetlert/pacman-repo-stats"
 readme = "README.adoc"
