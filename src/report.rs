@@ -1,4 +1,7 @@
-use std::collections::HashMap;
+use std::collections::{
+    BTreeSet,
+    HashMap,
+};
 
 use alpm::{
     Alpm,
@@ -41,7 +44,7 @@ pub struct Summary {
     #[serde(rename = "LocalInstalledTotal")]
     local_installed_total: u64,
 
-    #[serde(rename = "PackagesNotInReo")]
+    #[serde(rename = "PackagesNotInRepo")]
     pkgs_not_in_repo: Vec<String>,
 }
 
@@ -66,6 +69,10 @@ pub struct RepoStats {
     #[tabled(rename = "% Overall")]
     #[serde(rename = "OverallPercentage")]
     overall_percent: PercentageValue,
+
+    #[tabled(skip)]
+    #[serde(rename = "PackageList")]
+    paclist: BTreeSet<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -83,7 +90,7 @@ impl Summary {
     }
 
     /// Generate repo stats
-    pub fn build(&mut self) -> Result<()> {
+    pub fn build(&mut self, paclist: bool) -> Result<()> {
         let alpm = {
             let pacman_conf = Config::new().context("Failed to load `pacman.conf`")?;
             let alpm = Alpm::new(pacman_conf.root_dir, pacman_conf.db_path)
@@ -115,12 +122,21 @@ impl Summary {
             // Count installed packages from each repo
             for local_installed in alpm.localdb().pkgs() {
                 let mut found = false;
-                for db in alpm.syncdbs().iter() {
+                'search_in_repos: for db in alpm.syncdbs().iter() {
                     if db.pkg(local_installed.name()).is_ok() {
+                        // Increase count for this repo
                         stats.get_mut(db.name()).unwrap().add_installed();
 
+                        // Add local installed pkg to this repo
+                        if paclist {
+                            stats
+                                .get_mut(db.name())
+                                .unwrap()
+                                .add_installed_pkg(local_installed.name());
+                        }
+
                         found = true;
-                        break;
+                        break 'search_in_repos;
                     }
                 }
 
@@ -188,12 +204,18 @@ impl RepoStats {
             installed_pkgs: installed,
             installed_pkgs_percent: PercentageValue(None),
             overall_percent: PercentageValue(None),
+            paclist: BTreeSet::new(),
         }
     }
 
     /// Increase count of installed packages
     pub fn add_installed(&mut self) {
         self.installed_pkgs += 1;
+    }
+
+    /// Add installed pkg in list
+    pub fn add_installed_pkg(&mut self, pkg_name: &str) {
+        self.paclist.insert(pkg_name.into());
     }
 }
 

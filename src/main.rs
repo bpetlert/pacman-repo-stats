@@ -41,7 +41,7 @@ fn run() -> Result<()> {
     debug!("Run with {:?}", arguments);
 
     let mut summary = Summary::new();
-    summary.build()?;
+    summary.build(arguments.paclist)?;
     summary.finalize()?;
 
     let mut stdout = io::BufWriter::new(io::stdout().lock());

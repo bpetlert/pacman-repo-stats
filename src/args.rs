@@ -6,4 +6,8 @@ pub struct Arguments {
     /// Output to JSON format
     #[arg(long)]
     pub json: bool,
+
+    /// List all packages installed of each repo to JSON
+    #[arg(long, requires = "json")]
+    pub paclist: bool,
 }
