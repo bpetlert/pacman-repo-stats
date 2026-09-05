@@ -107,7 +107,7 @@ impl Summary {
                 .map(|repo| {
                     (
                         repo.name().to_owned(),
-                        RepoStat::new(repo.name(), repo.pkgs().len() as u64, 0),
+                        RepoStat::new(repo.name(), repo.pkgs().len() as u64, 0, BTreeSet::new()),
                     )
                 })
                 .collect();
@@ -163,6 +163,7 @@ impl Summary {
             "",
             self.repo_total,
             self.repo_installed_total,
+            BTreeSet::new(),
         ));
 
         self.installed_percentage();
@@ -203,14 +204,14 @@ impl Summary {
 }
 
 impl RepoStat {
-    pub fn new(name: &str, total: u64, installed: u64) -> Self {
+    pub fn new(name: &str, total: u64, installed: u64, packages: BTreeSet<String>) -> Self {
         Self {
             name: name.to_owned(),
             total_pkgs: total,
             installed_pkgs: installed,
             installed_pkgs_percent: PercentageValue(None),
             overall_percent: PercentageValue(None),
-            paclist: BTreeSet::new(),
+            paclist: packages,
         }
     }
 
@@ -309,20 +310,46 @@ impl Percentage for Summary {
 
 #[cfg(test)]
 mod tests {
+    use pretty_assertions::assert_eq;
+    use serde_json::json;
     use tabled::assert::assert_table;
 
     use super::*;
 
-    #[test]
-    fn test_repo_stats_to_table() {
+    fn setup_figure() -> Summary {
         let mut summary = Summary::new();
-        summary.repo_stats.push(RepoStat::new("core", 1234, 234));
+        summary.repo_stats.push(RepoStat::new(
+            "core",
+            1234,
+            234,
+            BTreeSet::from([
+                "acl".to_owned(),
+                "archlinux-keyring".to_owned(),
+                "attr".to_owned(),
+                "audit".to_owned(),
+                "autoconf".to_owned(),
+                "automake".to_owned(),
+                "base".to_owned(),
+                "base-devel".to_owned(),
+                "bash".to_owned(),
+            ]),
+        ));
+
         summary
             .repo_stats
-            .push(RepoStat::new("community", 4567, 456));
-        summary.repo_stats.push(RepoStat::new("extra", 8999, 555));
-        summary.finalize().unwrap();
+            .push(RepoStat::new("community", 4567, 456, BTreeSet::new()));
 
+        summary
+            .repo_stats
+            .push(RepoStat::new("extra", 8999, 555, BTreeSet::new()));
+
+        let _ = summary.finalize();
+        summary
+    }
+
+    #[test]
+    fn test_repo_stats_to_table() {
+        let summary = setup_figure();
         let table = summary.repo_stats_to_table().unwrap();
         assert_table!(
             table,
@@ -335,5 +362,64 @@ mod tests {
             "             (14800)      (1245)        (8.41)      (8.41) "
             "=========== ========= =========== ============= ==========="
         );
+    }
+
+    #[test]
+    fn test_report_to_json() {
+        let summary = setup_figure();
+        let summary_json = serde_json::to_string(&summary).unwrap();
+        let mut expected = json!(
+            {
+                "RepoStats": [
+                    {
+                        "Name": "core",
+                        "Total": 1234,
+                        "Installed": 234,
+                        "InstalledPercentage": 18.962722852512155,
+                        "OverallPercentage": 1.5810810810810811,
+                        "PackageList": [
+                                "acl",
+                                "archlinux-keyring",
+                                "attr",
+                                "audit",
+                                "autoconf",
+                                "automake",
+                                "base",
+                                "base-devel",
+                                "bash"
+                        ]
+                    },
+                    {
+                        "Name": "community",
+                        "Total": 4567,
+                        "Installed": 456,
+                        "InstalledPercentage": 9.984672651631268,
+                        "OverallPercentage": 3.081081081081081,
+                        "PackageList": []
+                    },
+                    {
+                        "Name": "extra",
+                        "Total": 8999,
+                        "Installed": 555,
+                        "InstalledPercentage": 6.167351927991999,
+                        "OverallPercentage": 3.75,
+                        "PackageList": []
+                    },
+                    {
+                        "Name": "",
+                        "Total": 14800,
+                        "Installed": 1245,
+                        "InstalledPercentage": 8.412162162162161,
+                        "OverallPercentage": 8.412162162162161,
+                        "PackageList": []
+                    }
+                ],
+                "RepoTotal": 14800,
+                "RepoInstalledTotal": 1245,
+                "LocalInstalledTotal": 0,
+                "PackagesNotInRepo": []
+            }
+        );
+        assert_eq!(summary_json, expected.to_string());
     }
 }
