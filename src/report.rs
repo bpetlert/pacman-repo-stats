@@ -14,8 +14,7 @@ use anyhow::{
 use pacmanconf::Config;
 use serde::Serialize;
 use tabled::{
-    Table,
-    Tabled,
+    builder::Builder,
     settings::{
         Alignment,
         Format,
@@ -33,7 +32,7 @@ use tabled::{
 #[derive(Debug, Serialize)]
 pub struct Summary {
     #[serde(rename = "RepoStats")]
-    pub repo_stats: Vec<RepoStats>,
+    pub repo_stats: Vec<RepoStat>,
 
     #[serde(rename = "RepoTotal")]
     repo_total: u64,
@@ -48,29 +47,23 @@ pub struct Summary {
     pkgs_not_in_repo: Vec<String>,
 }
 
-#[derive(Debug, Clone, Tabled, Serialize)]
-pub struct RepoStats {
-    #[tabled(rename = "Name")]
+#[derive(Debug, Clone, Serialize)]
+pub struct RepoStat {
     #[serde(rename = "Name")]
     name: String,
 
-    #[tabled(rename = "Total")]
     #[serde(rename = "Total")]
     total_pkgs: u64,
 
-    #[tabled(rename = "Installed")]
     #[serde(rename = "Installed")]
     installed_pkgs: u64,
 
-    #[tabled(rename = "% Installed")]
     #[serde(rename = "InstalledPercentage")]
     installed_pkgs_percent: PercentageValue,
 
-    #[tabled(rename = "% Overall")]
     #[serde(rename = "OverallPercentage")]
     overall_percent: PercentageValue,
 
-    #[tabled(skip)]
     #[serde(rename = "PackageList")]
     paclist: BTreeSet<String>,
 }
@@ -108,13 +101,13 @@ impl Summary {
         self.local_installed_total = alpm.localdb().pkgs().len() as u64;
 
         self.repo_stats = {
-            let mut stats: HashMap<String, RepoStats> = alpm
+            let mut stats: HashMap<String, RepoStat> = alpm
                 .syncdbs()
                 .iter()
                 .map(|repo| {
                     (
                         repo.name().to_owned(),
-                        RepoStats::new(repo.name(), repo.pkgs().len() as u64, 0),
+                        RepoStat::new(repo.name(), repo.pkgs().len() as u64, 0),
                     )
                 })
                 .collect();
@@ -166,7 +159,7 @@ impl Summary {
             .map(|stats| stats.installed_pkgs)
             .sum::<u64>();
 
-        self.repo_stats.push(RepoStats::new(
+        self.repo_stats.push(RepoStat::new(
             "",
             self.repo_total,
             self.repo_installed_total,
@@ -179,8 +172,21 @@ impl Summary {
     }
 
     fn repo_stats_to_table(&self) -> Result<String> {
-        let mut table = Table::new(&self.repo_stats);
+        let mut table_builder = Builder::with_capacity(&self.repo_stats.len() + 1, 5);
+        table_builder.push_record(["Name", "Total", "Installed", "% Installed", "% Overall"]);
+        for stats in &self.repo_stats {
+            table_builder.push_record([
+                stats.name.to_owned(),
+                stats.total_pkgs.to_string(),
+                stats.installed_pkgs.to_string(),
+                stats.installed_pkgs_percent.to_string(),
+                stats.overall_percent.to_string(),
+            ]);
+        }
+
+        let mut table = table_builder.build();
         table
+            .with(Style::re_structured_text())
             .with(Style::re_structured_text())
             .with(Modify::new(ByColumnName::new("Name")).with(Alignment::left()))
             .with(Modify::new(ByColumnName::new("Total")).with(Alignment::right()))
@@ -196,7 +202,7 @@ impl Summary {
     }
 }
 
-impl RepoStats {
+impl RepoStat {
     pub fn new(name: &str, total: u64, installed: u64) -> Self {
         Self {
             name: name.to_owned(),
@@ -262,7 +268,7 @@ trait Percentage {
     fn overall_percentage(&mut self);
 }
 
-impl Percentage for RepoStats {
+impl Percentage for RepoStat {
     fn installed_percentage(&mut self) {
         if self.total_pkgs == 0 {
             self.installed_pkgs_percent = PercentageValue(None);
@@ -303,32 +309,31 @@ impl Percentage for Summary {
 
 #[cfg(test)]
 mod tests {
+    use tabled::assert::assert_table;
+
     use super::*;
 
     #[test]
     fn test_repo_stats_to_table() {
         let mut summary = Summary::new();
-        summary.repo_stats.push(RepoStats::new("core", 1234, 234));
+        summary.repo_stats.push(RepoStat::new("core", 1234, 234));
         summary
             .repo_stats
-            .push(RepoStats::new("community", 4567, 456));
-        summary.repo_stats.push(RepoStats::new("extra", 8999, 555));
+            .push(RepoStat::new("community", 4567, 456));
+        summary.repo_stats.push(RepoStat::new("extra", 8999, 555));
         summary.finalize().unwrap();
 
         let table = summary.repo_stats_to_table().unwrap();
-        assert_eq!(
+        assert_table!(
             table,
-            concat!(
-                "=========== ========= =========== ============= ===========\n",
-                " Name          Total   Installed   % Installed   % Overall \n",
-                "=========== ========= =========== ============= ===========\n",
-                " core           1234         234         18.96        1.58 \n",
-                " community      4567         456          9.98        3.08 \n",
-                " extra          8999         555          6.17        3.75 \n",
-                "             (14800)      (1245)        (8.41)      (8.41) \n",
-                "=========== ========= =========== ============= ===========",
-            ),
-            "\n{table}"
+            "=========== ========= =========== ============= ==========="
+            " Name          Total   Installed   % Installed   % Overall "
+            "=========== ========= =========== ============= ==========="
+            " core           1234         234         18.96        1.58 "
+            " community      4567         456          9.98        3.08 "
+            " extra          8999         555          6.17        3.75 "
+            "             (14800)      (1245)        (8.41)      (8.41) "
+            "=========== ========= =========== ============= ==========="
         );
     }
 }
