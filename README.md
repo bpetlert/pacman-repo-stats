@@ -1,53 +1,31 @@
-= pacman-repo-stats
-:toc:
-:toc-placement!:
-ifndef::env-github[:icons: font]
-ifdef::env-github[]
-:status:
-:caution-caption: :fire:
-:important-caption: :exclamation:
-:note-caption: :paperclip:
-:tip-caption: :bulb:
-:warning-caption: :warning:
-endif::[]
+# pacman-repo-stats
 
-*pacman-repo-stats* is a tool to show usage statistics of repositories in pacman.conf.
+[![Release](https://img.shields.io/github/v/release/bpetlert/pacman-repo-stats?style=flat-square)](https://github.com/bpetlert/pacman-repo-stats/releases/latest)
+[![AUR](https://img.shields.io/aur/version/pacman-repo-stats?style=flat-square)](https://aur.archlinux.org/packages/pacman-repo-stats)
+[![License](https://img.shields.io/github/license/bpetlert/pacman-repo-stats?style=flat-square)](./COPYING)
+
+**pacman-repo-stats** is a tool to show usage statistics of repositories in pacman.conf.
 This is helpful for removing unused repositories.
 
-toc::[]
+## Installation
 
-== Installation
+### Arch Linux
 
-=== Cargo
+It is available on AUR as [pacman-repo-stats](https://aur.archlinux.org/packages/pacman-repo-stats).
+To build and install the arch package from GIT source:
 
-*pacman-repo-stats* can be used without installation by run:
+```bash
+git clone https://github.com/bpetlert/pacman-repo-stats.git
+cd pacman-repo-stats
+makepkg -p PKGBUILD.local
+pacman -U pacman-repo-stats-xxxx-1-x86_64.pkg.tar
+```
 
-.For normal output
-[source,console]
-$ cargo run
+## Usage
 
-.For JSON output
-[source,console]
-$ cargo run -- --json
+Normal output
 
-To install in `$HOME/.cargo/bin`, run:
-[source,console]
-$ cargo install --path .
-
-=== Arch Linux
-To build and install arch package from GIT source:
-
-[source,console]
-$ git clone https://github.com/bpetlert/pacman-repo-stats.git
-$ cd pacman-repo-stats
-$ makepkg -p PKGBUILD.local
-$ pacman -U pacman-repo-stats-xxxx-1-x86_64.pkg.tar
-
-== Usage
-
-.Normal output
-[source,console]
-----
+```bash
 $ pacman-repo-stats
 ============= ========= =========== ============= ===========
  Name            Total   Installed   % Installed   % Overall
@@ -64,11 +42,11 @@ $ pacman-repo-stats
 Local Installed Packages: 2231
 Installed Packages Not Found In Repo: 1
     qt5-webkit
-----
+```
 
-.Export as JSON and pretty print using https://stedolan.github.io/jq/[jq]
-[source,console]
-----
+Export as JSON and pretty print using [jq](https://stedolan.github.io/jq)
+
+```bash
 $ pacman-repo-stats --json | jq
 {
   "RepoStats": [
@@ -136,8 +114,8 @@ $ pacman-repo-stats --json | jq
     "qt5-webkit"
   ]
 }
-----
+```
 
-== License
+## License
 
-*link:./COPYING[GNU General Public License v3.0 or later]*
+[GNU General Public License v3.0 or later](./COPYING)
